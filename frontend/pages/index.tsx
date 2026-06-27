@@ -1,45 +1,43 @@
 import React from "react"
-import type { NextPage } from 'next'
-import Link from 'next/link'
-import { useDispositivoList,useLogsList } from "./../api"
-import { Item, ItemProps, Layout,ItemLogs,ItemLog } from "./../Components"
-import { Paper, Typography, Grid } from "@mui/material"
+import type { GetServerSideProps, NextPage } from "next"
+import { useDispositivoList } from "./../api"
+import { Item, ItemProps, Layout } from "./../Components"
 
-const Home: NextPage = () => {
+interface HomeProps {
+  initialDispositivos: ItemProps[]
+}
 
-  const { dispositivos } = useDispositivoList();
-  //console.log(dispositivos); 
-  //const { logs } = useLogsList();
-  //console.log(logs);
+const Home: NextPage<HomeProps> = ({ initialDispositivos }) => {
+  const { dispositivos } = useDispositivoList()
+  const list = dispositivos ?? initialDispositivos
+
   return (
-    
-     <Layout>
-        <div style={{ backgroundColor: 'white',textAlign: 'center'  }}>
-          <h1>DISPOSITIVOS</h1>
-        </div>
-      {
-        dispositivos?.map((element: ItemProps, index: number) => <Item key={index}
+    <Layout>
+      <div style={{ backgroundColor: "white", textAlign: "center" }}>
+        <h1>DISPOSITIVOS</h1>
+      </div>
+      {list?.map((element: ItemProps, index: number) => (
+        <Item
+          key={element.dispositivoId ?? index}
           dispositivoId={element.dispositivoId}
           nombre={element.nombre}
           ubicacion={element.ubicacion}
-          //id={element._id}
           temperatura={element.temperatura}
-        />)
-      }
-
-    </Layout> 
-
-
-    /* {<Layout>
-      {
-        logs?.map((element: ItemLogs, index: number) => <ItemLog key={index}
-          dispositivoId={element.dispositivoId}
-          logId={element.logId}
-          etemperatura={element.etemperatura}
-        />)
-      }
-    </Layout> }*/
+        />
+      ))}
+    </Layout>
   )
+}
+
+export const getServerSideProps: GetServerSideProps<HomeProps> = async () => {
+  const api = process.env.API_URL || "http://129.151.116.139:3000/"
+  try {
+    const res = await fetch(`${api}dispositivos`)
+    const json = await res.json()
+    return { props: { initialDispositivos: json.data ?? [] } }
+  } catch {
+    return { props: { initialDispositivos: [] } }
+  }
 }
 
 export default Home
