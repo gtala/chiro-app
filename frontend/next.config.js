@@ -6,8 +6,8 @@ const nextConfig = {
   async rewrites() {
     return [
       { source: "/status", destination: `${apiUrl}status` },
+      // Solo lista; /dispositivos/:id es página Next.js (logs usa /logs/:nodoId)
       { source: "/dispositivos", destination: `${apiUrl}dispositivos` },
-      { source: "/dispositivos/:path*", destination: `${apiUrl}dispositivos/:path*` },
       { source: "/logs", destination: `${apiUrl}logs` },
       { source: "/logs/:path*", destination: `${apiUrl}logs/:path*` },
     ];

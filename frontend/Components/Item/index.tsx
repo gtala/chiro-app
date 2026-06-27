@@ -67,7 +67,7 @@ export const ItemLog = ({ logId,ts,etemperatura,nodoId}: ItemLogs) => {
     return (
         // <Link href={`/status/`}>
             <Paper elevation={3} style={{ margin: 10, padding: 20 }}>
-            <   div style={{ display: "flex" }}>
+            <div style={{ display: "flex" }}>
                     <Typography variant="h6" style={{ fontWeight: "bold" }}>logId</Typography>
                     <Typography variant="h6">: {logId}</Typography>
                 </div>

@@ -1,1 +1,1 @@
-COMPONENT_EMBED_TXTFILES := client.crt client.key broker_CA.crt
+COMPONENT_EMBED_TXTFILES := broker_CA.crt

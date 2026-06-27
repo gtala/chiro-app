@@ -25,3 +25,4 @@ sistema_embebido/build/
 # OS / editor
 .DS_Store
 .cursor/
+.vercel

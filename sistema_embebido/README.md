@@ -1,104 +1,93 @@
-# ESP-MQTT SSL Sample application 
-## (mutual authentication)
+# ESP32 + BMP280 → Mosquitto MQTTS (Oracle Cloud)
 
-Este ejemplo conecta el ESP32 al broker Mosquitto utilizando TLS
+Firmware en `main/app_main.c`: lee temperatura del BMP280 (I2C SDA=21, SCL=22) y publica cada 20 s en `/PLANTA_BAJA/TEMPERATURA`.
 
+## Broker (producción)
 
+```
+mqtts://129.151.116.139:8883
+```
 
-## Configuracion SSID y PASS WiFi
+Certificado CA embebido: `main/broker_CA.crt` (copia de `mosquitto/certs/ca.crt`).
 
-Este ejemplo usa la funcion "example_connect()" de la platarforma ESP-IDF.
+## Requisitos
 
-Para configurar el SSID y PASSWORD se debe hacer clic en el icono "engranaje" (configuración)
+1. **ESP-IDF v4.4.7** — [Instalación](https://docs.espressif.com/projects/esp-idf/en/v4.4.7/esp32/get-started/index.html)
+2. **esp-idf-lib** (driver BMP280) — clon en `../esp-idf-lib` respecto a `esp-idf`
+3. Extensión **ESP-IDF** en VS Code (opcional)
+
+Instalación automática (Linux/macOS):
+
+```bash
+cd sistema_embebido
+chmod +x setup-idf.sh
+./setup-idf.sh
+```
+
+O manualmente:
+
+```bash
+# Desde la raíz del repo
+./scripts/sync-esp32-certs.sh
+
+cd sistema_embebido
+. ~/esp/esp-idf/export.sh
+idf.py set-target esp32
+idf.py build
+idf.py -p /dev/ttyUSB0 flash monitor
+```
+
+## WiFi
+
+Editar `sdkconfig.defaults` (SSID/password) o `idf.py menuconfig` → **Example Connection Configuration**.
+
+## Cableado BMP280 → ESP32
+
+| BMP280 | ESP32 |
+|--------|-------|
+| VCC    | 3.3V  |
+| GND    | GND   |
+| SDA    | GPIO 21 |
+| SCL    | GPIO 22 |
+
+## JSON publicado
+
+```json
+{
+  "dispositivoId": 1,
+  "nombre": "ESP32_BMP280_TEMPERATURA",
+  "ubicacion": "Planta Baja",
+  "temperatura": 22.89
+}
+```
+
+## Configuración SSID y PASS WiFi (VS Code)
+
+Este ejemplo usa la funcion "example_connect()" de la plataforma ESP-IDF.
+
+Para configurar el SSID y PASSWORD se puede usar el icono "engranaje" (configuración)
 de la barra inferior del VSCode y allí en la sección de WiFi se podrán configurar los datos
-necesarios
-ll
+necesarios.
 
+## Certificados
 
+El broker en Oracle usa los certificados de `mosquitto/certs/`. Para actualizar el ESP32:
 
-## Configurar URI del Broker
+```bash
+./scripts/sync-esp32-certs.sh
+```
 
-Dentro del archivo app_main.c hay que configurar la definición "BROKER_URI" que se encuentra
-al inicio del archivo, colocando los datos correctos del broker a utilizar.
+Regenerar certificados (incluye IP pública Oracle en SAN):
 
-
-
-## Configurar certificados:
-
-En los archivos client.crt, client.key y broker_CA.crt, hay que pegar el contenido
-de los certificados que se crean con el script crea_certs.sh.
-Recordar reemplazar la IP que se encuentra dentro del script, por TU IP LOCAL
-
-
-
-## Copiar los certificados necesarios a la carpeta del broker:
-
-En general la carpeta es "/etc/mosquitto/certs", el path se indica en el archivo mosquito.conf
-
-Se deben copiar allí dentro los siguientes archivos generados con el script "crea_certs.sh"
-ca.crt
-server.crt
-server.key
-
-
-
-## El siguiente es el contenido del archivo mosquitto.conf que permite correr este ejemplo:
-
-persistence true
-
-persistence_location /var/lib/mosquitto/
-
-log_dest file /var/log/mosquitto/mosquitto.log
-
-include_dir /etc/mosquitto/conf.d
-
-#allow_anonymous true
-
-#password_file /etc/mosquitto/passfile
-
-#listener 1883
-
-listener 8883
-
-cafile /etc/mosquitto/certs/ca.crt
-
-keyfile /etc/mosquitto/certs/server.key
-
-certfile /etc/mosquitto/certs/server.crt
-
-require_certificate true
-
-use_identity_as_username true
+```bash
+FORCE_REGEN=1 BROKER_PUBLIC_IP=129.151.116.139 ./scripts/generate-certs.sh ./mosquitto/certs
+```
 
 ## libreria BMP280
 
-Recordar instalar las librerias de espressif donde contine la libreria del bmp280, en mi caso se instalo en ../esp-idf-lib/components/  y luego se modifico CMakelistis.txt agregando:
+Instalar esp-idf-lib en `../esp-idf-lib` respecto a ESP-IDF. En `CMakeLists.txt`:
+
+```cmake
 set(EXTRA_COMPONENT_DIRS $ENV{IDF_PATH}/examples/common_components/protocol_examples_common $ENV{IDF_PATH}/../esp-idf-lib/components/)
-
-
-### Ejemplo de la salida por consola al ejecutar la aplicación:
-
-```
-I (3714) event: sta ip: 192.168.0.139, mask: 255.255.255.0, gw: 192.168.0.2
-I (3714) system_api: Base MAC address is not set, read default base MAC address from BLK0 of EFUSE
-I (3964) MQTT_CLIENT: Sending MQTT CONNECT message, type: 1, id: 0000
-I (4164) MQTTS_EXAMPLE: MQTT_EVENT_CONNECTED
-I (4174) MQTTS_EXAMPLE: sent publish successful, msg_id=41464
-I (4174) MQTTS_EXAMPLE: sent subscribe successful, msg_id=17886
-I (4174) MQTTS_EXAMPLE: sent subscribe successful, msg_id=42970
-I (4184) MQTTS_EXAMPLE: sent unsubscribe successful, msg_id=50241
-I (4314) MQTTS_EXAMPLE: MQTT_EVENT_PUBLISHED, msg_id=41464
-I (4484) MQTTS_EXAMPLE: MQTT_EVENT_SUBSCRIBED, msg_id=17886
-I (4484) MQTTS_EXAMPLE: sent publish successful, msg_id=0
-I (4684) MQTTS_EXAMPLE: MQTT_EVENT_SUBSCRIBED, msg_id=42970
-I (4684) MQTTS_EXAMPLE: sent publish successful, msg_id=0
-I (4884) MQTT_CLIENT: deliver_publish, message_length_read=19, message_length=19
-I (4884) MQTTS_EXAMPLE: MQTT_EVENT_DATA
-TOPIC=/topic/qos0
-DATA=data
-I (5194) MQTT_CLIENT: deliver_publish, message_length_read=19, message_length=19
-I (5194) MQTTS_EXAMPLE: MQTT_EVENT_DATA
-TOPIC=/topic/qos0
-DATA=data
 ```
 

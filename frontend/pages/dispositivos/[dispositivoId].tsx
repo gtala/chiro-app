@@ -1,61 +1,57 @@
 import React from "react"
-import type { NextPage } from 'next'
-import { useRouter } from 'next/router'
-import { useDispositivoById,useDispositivoList,useLogsList,useLogsById} from "./../../api"
-import { Item,Layout,ItemLog,ItemLogs } from "./../../Components"
-import { Paper, Typography, Button } from "@mui/material"
+import type { GetServerSideProps, NextPage } from "next"
+import { useRouter } from "next/router"
+import { useLogsById } from "./../../api"
+import { Layout, ItemLog, ItemLogs } from "./../../Components"
+import { Button } from "@mui/material"
 
+interface LogsPageProps {
+  dispositivoId: string
+  initialLogs: ItemLogs[]
+}
 
-const DispositivoId: NextPage = () => {
-    const router = useRouter();
-/* 
-    if (router.isReady) {
-      const { dispositivoId } = router.query;
-      //dispositivoId || "defaultDispositivoId"; // Asignar valor por defecto si no está definido
-    } */
-    const { dispositivoId } = router?.query ?? 1; 
-    
+const DispositivoId: NextPage<LogsPageProps> = ({ dispositivoId, initialLogs }) => {
+    const router = useRouter()
+    const id = router.isReady ? (router.query.dispositivoId as string) : dispositivoId
+    const { logs } = useLogsById(id)
+    const list = logs ?? initialLogs
+
     const onBack = () => {
-        router.back();
+        router.back()
     }
-/* 
-    if(dispositivoId == "'undefined'"){
-       console.log(dispositivoId);
-       
-    }  */
-
-    //const { dispositivo } =  useDispositivoById(dispositivoId);
-    //console.log("arreglo de dispositivo dispositivoId");
-    //console.log(dispositivo);
-    //const { logs } = useLogsById(dispositivo?.dispositivoId);
-
-    const { logs } = useLogsById(dispositivoId);
-    // console.log("arreglo de logs dispositivoId");
-    // console.log("arreglo de logs dispositivoId");
-    // console.log(dispositivoId);
-    //console.log(logs);
-
-    
 
     return (
       <Layout>
-        <div style={{ backgroundColor: 'white',textAlign: 'center'  }}>
+        <div style={{ backgroundColor: "white", textAlign: "center" }}>
           <h1>LOGS</h1>
         </div>
-         <Button   variant="outlined"  onClick={onBack} > Volver </Button>
+         <Button variant="outlined" onClick={onBack}> Volver </Button>
           {
-            logs?.map((element: ItemLogs, index: number) => <ItemLog key={index}
+            list?.map((element: ItemLogs, index: number) => (
+              <ItemLog
+                key={element.logId ?? index}
                 logId={element.logId}
                 ts={element.ts}
                 etemperatura={element.etemperatura}
                 nodoId={element.nodoId}
-            />)
-            
+              />
+            ))
           }
-          <Button   variant="outlined"  onClick={onBack} > Volver    </Button>
-          
+          <Button variant="outlined" onClick={onBack}> Volver </Button>
         </Layout>
-    ) 
+    )
 }
 
-export default DispositivoId;
+export const getServerSideProps: GetServerSideProps<LogsPageProps> = async (context) => {
+  const dispositivoId = context.params?.dispositivoId as string
+  const api = process.env.API_URL || "http://129.151.116.139:3000/"
+  try {
+    const res = await fetch(`${api}logs/${dispositivoId}`)
+    const json = await res.json()
+    return { props: { dispositivoId, initialLogs: json.data ?? [] } }
+  } catch {
+    return { props: { dispositivoId, initialLogs: [] } }
+  }
+}
+
+export default DispositivoId

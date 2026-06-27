@@ -182,10 +182,13 @@ const register = (router) => {
     });
 
     router.get('/dispositivos/:id', async function (req, res) {
-
-        const listado = await dispositivo.findOne({ "_id": req.params.id });
+        const { id } = req.params;
+        const query = /^[a-f\d]{24}$/i.test(id)
+            ? { _id: id }
+            : { dispositivoId: Number(id) };
+        const listado = await dispositivo.findOne(query);
         if (!listado) return res.json({ data: null, error: 'No hay datos en la Base de Datos.' });
-        if (listado) return res.json({ data: listado, error: null });
+        return res.json({ data: listado, error: null });
     });
 
     router.get('/logs', async function (req, res) {
@@ -196,7 +199,7 @@ const register = (router) => {
 
     router.get('/logs/:nodoId', async function (req, res) {
        
-        const listado = await logs.find({ "nodoId": req.params.nodoId }).sort({ ts: -1 });
+        const listado = await logs.find({ nodoId: Number(req.params.nodoId) }).sort({ ts: -1 });
        // console.log(listado);
         if (!listado) return res.json({ data: null, error: 'No hay datos en la Base de Datos.' });
         if (listado) return res.json({ data: listado, error: null });

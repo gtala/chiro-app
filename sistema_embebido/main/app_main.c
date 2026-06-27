@@ -89,17 +89,13 @@ static void http_get_task(void *pvParameters)
 
 
 
-// Set your local broker URI
-#define BROKER_URI "mqtts://192.168.0.101:8883"
+// Broker MQTTS en Oracle Cloud (producción)
+#define BROKER_URI "mqtts://129.151.116.139:8883"
 
 //static const char *TAG = "MQTTS_EXAMPLE";
 
-extern const uint8_t client_cert_pem_start[] asm("_binary_client_crt_start");
-extern const uint8_t client_cert_pem_end[] asm("_binary_client_crt_end");
-extern const uint8_t client_key_pem_start[] asm("_binary_client_key_start");
-extern const uint8_t client_key_pem_end[] asm("_binary_client_key_end");
-extern const uint8_t server_cert_pem_start[] asm("_binary_broker_CA_crt_start");
-extern const uint8_t server_cert_pem_end[] asm("_binary_broker_CA_crt_end");
+extern const uint8_t broker_ca_pem_start[] asm("_binary_broker_CA_crt_start");
+extern const uint8_t broker_ca_pem_end[] asm("_binary_broker_CA_crt_end");
 
 
 
@@ -172,9 +168,9 @@ static void mqtt_app_start(void)
 {
     const esp_mqtt_client_config_t mqtt_cfg = {
         .uri = BROKER_URI,
-        .client_cert_pem = (const char *)client_cert_pem_start,
-        .client_key_pem = (const char *)client_key_pem_start,
-        .cert_pem = (const char *)server_cert_pem_start,
+        .cert_pem = (const char *)broker_ca_pem_start,
+        /* Cert del broker tiene CN=localhost; conectamos por IP pública */
+        .skip_cert_common_name_check = true,
     };
 
     ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
