@@ -1,0 +1,19 @@
+[Unit]
+Description=Chiro TP Backend (Node.js)
+After=network.target mosquitto.service
+Wants=mosquitto.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/chiro-app/backend
+EnvironmentFile=/home/ubuntu/chiro-app/backend/.env
+ExecStart=/usr/bin/node index.js
+Restart=always
+RestartSec=5
+
+# Limitar memoria (~300 MB) para no matar la VM de 1 GB
+MemoryMax=300M
+
+[Install]
+WantedBy=multi-user.target

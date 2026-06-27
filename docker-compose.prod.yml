@@ -1,3 +1,6 @@
+# Solo backend + Mosquitto (Oracle VM)
+# Uso: docker compose -f docker-compose.prod.yml up -d --build
+
 services:
   certs:
     image: alpine/openssl:latest
@@ -22,56 +25,24 @@ services:
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "mosquitto_sub -h localhost -p 8883 --cafile /mosquitto/certs/ca.crt -t '$$SYS/broker/version' -C 1 -W 3"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 5s
 
   backend:
     build: ./backend
     container_name: chiro-backend
     depends_on:
-      mosquitto:
-        condition: service_healthy
+      - mosquitto
     env_file:
       - ./backend/.env
     environment:
+      MQTT_HOST: mosquitto
+      MQTT_CA_PATH: /certs/ca.crt
+      MQTT_TLS_INSECURE: "true"
       API_HOST: 0.0.0.0
       API_PORT: 3000
-      MQTT_HOST: mosquitto
-      MQTT_PORT: 8883
-      MQTT_TLS_INSECURE: "true"
-      MQTT_CA_PATH: /certs/ca.crt
-      ENVIRONMENT: dev
     volumes:
       - ./mosquitto/certs/ca.crt:/certs/ca.crt:ro
     ports:
       - "3000:3000"
-    restart: unless-stopped
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "node -e \"fetch('http://127.0.0.1:3000/status').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
-
-  frontend:
-    build:
-      context: ./frontend
-      args:
-        NEXT_PUBLIC_API_HOST_URL: http://localhost:3000/
-    container_name: chiro-frontend
-    depends_on:
-      backend:
-        condition: service_healthy
-    ports:
-      - "3005:3000"
     restart: unless-stopped
 
 volumes:
