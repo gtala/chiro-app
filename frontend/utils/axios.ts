@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios'
 
 export const ApiInstnace = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_HOST_URL
+    baseURL: process.env.NEXT_PUBLIC_API_HOST_URL || "",
 })
 
 ApiInstnace.interceptors.request.use(function (config) {
