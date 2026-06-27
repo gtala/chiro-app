@@ -1,0 +1,4 @@
+# Ignorar el archivo sdkconfig y sdkconfig.old
+build/*
+sdkconfig
+sdkconfig.old

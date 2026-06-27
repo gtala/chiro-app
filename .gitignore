@@ -7,13 +7,20 @@ node_modules/
 frontend/.next/
 frontend/out/
 
-# Certificados MQTTS generados localmente
+# Certificados
 mosquitto/certs/*.crt
 mosquitto/certs/*.key
 mosquitto/certs/*.csr
 mosquitto/certs/*.srl
 mosquitto/certs/*.ext
 !mosquitto/certs/.gitkeep
+
+backend/*.crt
+backend/*.key
+backend/*.csr
+
+# ESP-IDF build
+sistema_embebido/build/
 
 # OS / editor
 .DS_Store

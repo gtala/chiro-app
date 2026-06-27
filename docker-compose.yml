@@ -7,18 +7,6 @@ services:
       - ./scripts/generate-certs.sh:/generate-certs.sh:ro
     entrypoint: ["/bin/sh", "/generate-certs.sh", "/certs"]
 
-  mongodb:
-    image: mongo:7
-    container_name: chiro-mongodb
-    volumes:
-      - mongo_data:/data/db
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   mosquitto:
     image: eclipse-mosquitto:2
     container_name: chiro-mosquitto
@@ -45,52 +33,52 @@ services:
     build: ./backend
     container_name: chiro-backend
     depends_on:
-      mongodb:
-        condition: service_healthy
       mosquitto:
         condition: service_healthy
     environment:
-      PORT: 4000
-      MONGODB_URI: mongodb://mongodb:27017/chiro
-      MQTT_BROKER_URL: mqtts://mosquitto:8883
-      MQTT_TOPIC: "chiro/sensores/#"
-      MQTT_CLIENT_ID: chiro-backend
-      MQTT_CA_CERT: /certs/ca.crt
+      API_HOST: 0.0.0.0
+      API_PORT: 3000
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 8883
+      MQTT_USERNAME: ""
+      MQTT_PASSWORD: ""
+      DB_MONGO_USERNAME: chirox
+      DB_MONGO_PASSWORD: emjF9yFch6edQ4C0
+      DB_MONGO_DBNAME: chiro
+      DB_MONGO_HOST: kokteyl-card.ey4ki.mongodb.net
+      DB_MONGO_PORT: ""
+      ENVIRONMENT: dev
       MQTT_TLS_INSECURE: "true"
+      MQTT_CA_PATH: /certs/ca.crt
     volumes:
       - ./mosquitto/certs/ca.crt:/certs/ca.crt:ro
     ports:
-      - "4000:4000"
+      - "3000:3000"
     restart: unless-stopped
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "node -e \"fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+          "node -e \"fetch('http://127.0.0.1:3000/status').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
         ]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 15s
 
   frontend:
     build:
       context: ./frontend
       args:
-        BACKEND_URL: http://backend:4000
-        NEXT_PUBLIC_MQTT_WSS_URL: wss://localhost:8084
-        NEXT_PUBLIC_MQTT_TOPIC: "chiro/sensores/#"
+        NEXT_PUBLIC_API_HOST_URL: http://localhost:3000/
     container_name: chiro-frontend
     depends_on:
       backend:
         condition: service_healthy
-    environment:
-      BACKEND_URL: http://backend:4000
     ports:
       - "3005:3000"
     restart: unless-stopped
 
 volumes:
-  mongo_data:
   mosquitto_data:
   mosquitto_log:

@@ -1,18 +1,26 @@
 {
-  "name": "chiro-backend",
+  "name": "backend",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
+  "main": "index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "node --watch src/index.js",
-    "publish-test": "node scripts/publish-test.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "mongoose": "^8.9.5",
-    "mqtt": "^5.10.3"
+    "dotenv": "^16.0.1",
+    "errorhandler": "^1.5.1",
+    "express": "^4.18.1",
+    "express-promise-router": "^4.1.1",
+    "glob": "^10.4.1",
+    "helmet": "^5.1.0",
+    "moment": "^2.30.1",
+    "mongoose": "^6.3.4",
+    "mqtt": "^4.3.7",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
   }
 }
