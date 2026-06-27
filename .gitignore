@@ -1,0 +1,20 @@
+node_modules/
+.env
+.env.local
+*.log
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Certificados MQTTS generados localmente
+mosquitto/certs/*.crt
+mosquitto/certs/*.key
+mosquitto/certs/*.csr
+mosquitto/certs/*.srl
+mosquitto/certs/*.ext
+!mosquitto/certs/.gitkeep
+
+# OS / editor
+.DS_Store
+.cursor/
